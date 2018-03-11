@@ -1,21 +1,34 @@
 package main
 
 import "fmt"
+import "time"
 
 //import "image"
+
+const searchInterval = 5
 
 func main() {
 	// pipelines
 	c1 := make(chan string)
+	go initiate(c1)
 	go imgGet(c1)
-	c1.send("blah")
 	// separate goroutines for different functions
-	// close all the channels
-	close(c1)
+	// close out program
+	var input string
+	fmt.Scanln(&input)
 }
 
-func imgGet(ch chan string) {
-	for ch.recv() {
-		fmt.Println(ch)
+func initiate(ch chan<- string) {
+	for {
+		ch <- "foo"
+		time.Sleep(time.Second * searchInterval)
+	}
+}
+
+func imgGet(cin chan string) {
+	for {
+		msg := <-cin
+		fmt.Println(msg)
+		time.Sleep(time.Second * searchInterval)
 	}
 }
