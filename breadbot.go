@@ -69,9 +69,16 @@ func imgGet(cin chan string, googKey map[string]string) {
 		fmt.Println(reqUrl)
 		// send it to google
 		client := &http.Client{
-			Timeout: time.Second * 15,
+			Timeout: time.Second * 2,
 		}
-		resp, err := client.Get(reqUrl)
+		req, err := http.NewRequest("GET", reqUrl, nil)
+		if err != nil {
+			panic(err)
+		}
+		req.Header.Set("User-Agent", "BreadBot/0.0.1")
+		fmt.Println("ready")
+		resp, err := client.Do(req)
+		fmt.Println("test")
 		if err != nil {
 			panic(err)
 		}
@@ -84,7 +91,7 @@ func imgGet(cin chan string, googKey map[string]string) {
 		}
 		fmt.Println("read")
 		fmt.Println(string(bodyJson))
-		var body searchPage
+		body := searchPage{}
 		json.Unmarshal(bodyJson, &body)
 		fmt.Println("decoded")
 		fmt.Println(body.Items[0].Link)
