@@ -54,7 +54,8 @@ func imgGet(cin chan string, googKey map[string]string) {
 		// get query
 		msg := <-cin
 		// make http request
-		reqUrl := fmt.Sprintf("%s?key=%s&cx=%s&q=%s&searchType=image", googKey["address"], googKey["key"], googKey["id"], msg)
+		urlTemplate := "%s?key=%s&cx=%s&q=%s&searchType=image"
+		reqUrl := fmt.Sprintf(urlTemplate, googKey["address"], googKey["key"], googKey["id"], msg)
 		fmt.Println(reqUrl)
 		// send it to google
 		client := &http.Client{
@@ -76,6 +77,5 @@ func imgGet(cin chan string, googKey map[string]string) {
 		json.Unmarshal(bodyJson, &body)
 		fmt.Println("decoded")
 		fmt.Println(body)
-		time.Sleep(time.Second * searchInterval)
 	}
 }
