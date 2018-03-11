@@ -6,6 +6,7 @@ import "time"
 //import "image"
 
 const searchInterval = 5
+const imgApiAddress = "https://www.googleapis.com/customsearch/v1"
 
 func main() {
 	// pipelines
@@ -14,13 +15,15 @@ func main() {
 	go imgGet(c1)
 	// separate goroutines for different functions
 	// close out program
-	var input string
-	fmt.Scanln(&input)
+	for {
+	}
 }
 
 func initiate(ch chan<- string) {
 	for {
-		ch <- "foo"
+		var input string
+		fmt.Scanln(&input)
+		ch <- input
 		time.Sleep(time.Second * searchInterval)
 	}
 }
