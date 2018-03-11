@@ -49,12 +49,22 @@ func initiate(ch chan<- string) {
 	}
 }
 
+type searchPage struct {
+	Kind  string
+	Items []imgResult
+}
+
+type imgResult struct {
+	Link string
+	Mime string
+}
+
 func imgGet(cin chan string, googKey map[string]string) {
 	for {
 		// get query
 		msg := <-cin
 		// make http request
-		urlTemplate := "%s?key=%s&cx=%s&q=%s&searchType=image"
+		urlTemplate := "%s?key=%s&cx=%s&q=%s&searchType=image&fields=kind,items(link,mime)"
 		reqUrl := fmt.Sprintf(urlTemplate, googKey["address"], googKey["key"], googKey["id"], msg)
 		fmt.Println(reqUrl)
 		// send it to google
@@ -65,7 +75,7 @@ func imgGet(cin chan string, googKey map[string]string) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("recd")
+		fmt.Println("received")
 		// process response
 		defer resp.Body.Close()
 		bodyJson, err := ioutil.ReadAll(resp.Body)
@@ -73,9 +83,10 @@ func imgGet(cin chan string, googKey map[string]string) {
 			panic(err)
 		}
 		fmt.Println("read")
-		var body map[string]interface{}
+		fmt.Println(string(bodyJson))
+		var body searchPage
 		json.Unmarshal(bodyJson, &body)
 		fmt.Println("decoded")
-		fmt.Println(body)
+		fmt.Println(body.Items[0].Link)
 	}
 }
