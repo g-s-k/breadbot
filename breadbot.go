@@ -2,36 +2,80 @@ package main
 
 import "fmt"
 import "time"
+import "net/url"
+import "net/http"
+import "encoding/json"
+import "io/ioutil"
 
 //import "image"
 
+const keyFile = "keys.json"
 const searchInterval = 5
-const imgApiAddress = "https://www.googleapis.com/customsearch/v1"
 
 func main() {
+	// get api info
+	apiKeys := getKeys()
 	// pipelines
 	c1 := make(chan string)
-	go initiate(c1)
-	go imgGet(c1)
 	// separate goroutines for different functions
-	// close out program
+	go initiate(c1)
+	go imgGet(c1, apiKeys["google-search"])
+	// don't close out program until interrupted
 	for {
 	}
+}
+
+func getKeys() map[string]map[string]string {
+	// read file into bytearray
+	raw, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		panic(err)
+	}
+	// decode as json
+	var keys map[string]map[string]string
+	json.Unmarshal(raw, &keys)
+	return keys
 }
 
 func initiate(ch chan<- string) {
 	for {
+		// get user input
 		var input string
 		fmt.Scanln(&input)
-		ch <- input
+		// send it into the channel
+		ch <- url.QueryEscape(input)
+		// wait for some interval
 		time.Sleep(time.Second * searchInterval)
 	}
 }
 
-func imgGet(cin chan string) {
+func imgGet(cin chan string, googKey map[string]string) {
 	for {
+		// get query
 		msg := <-cin
-		fmt.Println(msg)
+		// make http request
+		reqUrl := fmt.Sprintf("%s?key=%s&cx=%s&q=%s&searchType=image", googKey["address"], googKey["key"], googKey["id"], msg)
+		fmt.Println(reqUrl)
+		// send it to google
+		client := &http.Client{
+			Timeout: time.Second * 15,
+		}
+		resp, err := client.Get(reqUrl)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("recd")
+		// process response
+		defer resp.Body.Close()
+		bodyJson, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("read")
+		var body map[string]interface{}
+		json.Unmarshal(bodyJson, &body)
+		fmt.Println("decoded")
+		fmt.Println(body)
 		time.Sleep(time.Second * searchInterval)
 	}
 }
